@@ -201,6 +201,7 @@ function saveRecord() {
   data.records.push(record);
   saveData();
   showToast(`記録しました：${record.exercise} ${formatSet(record)}`);
+  owlSay('saved');
   renderDayList();
   renderPrevious();
 }
@@ -452,6 +453,7 @@ function saveMind() {
   renderMoods();
   renderMindList();
   showToast('マインド日記に残しました');
+  owlSay('mindSaved');
 }
 
 // Notionに貼りやすい形にしてコピー(1行目がページ名「261123‐ひとこと」)
@@ -752,7 +754,41 @@ function setupVideos() {
 }
 
 // ---------- タブの切り替え ----------
+// ---------- フクロウのひとこと ----------
+// 画面の上のフクロウが、吹き出しで短く話しかけます。
+// 記録が止まっても責めない、やさしい言葉だけにしています。
+const OWL_WORDS = {
+  start: ['今日もいこう！', 'まずは1種目から', 'ゆるっといこう'],
+  more: ['いい感じ！', 'その調子！', 'ナイスペース'],
+  saved: ['ナイス！', 'いいぞ！', '今日も一歩前進', '休憩も大事だよ', 'えらい！'],
+  history: ['積み重ねてるね', 'ちゃんと続いてる'],
+  mind: ['今日の気分は？', 'なんでも話してね'],
+  mindSaved: ['話してくれてありがとう', '残しておいたよ'],
+  motivation: ['テンション上げよ', '好きな曲かけよ'],
+  tap: ['ホー！', 'がんばってるね', '水分とった？', 'フクロウだよ'],
+};
+const pick = (list) => list[Math.floor(Math.random() * list.length)];
+
+function owlSay(kind) {
+  const el = $('owl-msg');
+  el.textContent = pick(OWL_WORDS[kind]);
+  el.classList.remove('pop');
+  void el.offsetWidth; // アニメーションをもう一度動かすためのおまじない
+  el.classList.add('pop');
+}
+
+// 今いるタブに合わせて話す
+function owlForView(name) {
+  if (name === 'record') {
+    const today = data.records.some((r) => r.date === $('date').value);
+    owlSay(today ? 'more' : 'start');
+  } else {
+    owlSay(name);
+  }
+}
+
 function showView(name) {
+  owlForView(name);
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.view === name));
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === `view-${name}`));
   if (name === 'history') renderHistory();
@@ -773,6 +809,8 @@ function init() {
   $('bodyweight').addEventListener('change', saveBodyWeight);
   $('save').addEventListener('click', saveRecord);
   document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showView(t.dataset.view)));
+  $('owl').addEventListener('click', () => owlSay('tap'));
+  owlForView('record');
 
   setupSteppers();
   setupLinks();
