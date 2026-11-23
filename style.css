@@ -14,6 +14,7 @@
   --accent: #ff6b1a;      /* 差し色(オレンジ) */
   --accent-weak: #2a1d14; /* 差し色のうすい版 */
   --on-accent: #ffffff;   /* オレンジの上に乗る文字 */
+  --beige: #d8bf98;       /* 差し色2(ベージュ):見出しや単位などに少しだけ */
   --danger: #ff6b6b;      /* 削除など */
   --primary-bg: linear-gradient(135deg, #ff8a1a, #ff3d2e); /* 「記録する」ボタン */
   --primary-shadow: 0 6px 20px rgba(255, 90, 30, .35);
@@ -195,26 +196,50 @@ textarea {
 body { font-feature-settings: "palt"; }
 
 /* タイトル:太い斜め文字+左にオレンジの線 */
-.top { background: var(--bg); border-bottom: 0; padding-bottom: 8px; }
+.top { background: var(--bg); border-bottom: 0; padding-bottom: 2px; }
 .top h1 { font-size: 22px; font-weight: 900; font-style: italic; letter-spacing: .04em; margin-bottom: 10px; }
 .top h1::before {
   content: ""; display: inline-block; width: 6px; height: 18px; margin-right: 8px;
   background: var(--accent); transform: skewX(-15deg); vertical-align: -2px;
 }
 
-/* タブ:押されているものがオレンジのボタンになる */
-.tabs { gap: 4px; background: var(--card); padding: 4px; border-radius: 12px; }
-.tab { border: 0; border-radius: 9px; padding: 8px 2px; font-size: 14px; }
-.tab.active { background: var(--accent); color: var(--on-accent); }
+/* 下のタブバー:親指で押しやすい位置。選ばれているタブはオレンジに光る */
+main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  background: rgba(18, 19, 22, .92); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+}
+.tab {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  border: 0; padding: 6px 2px; font-size: 11px; font-weight: 700; color: var(--sub);
+  transition: color .15s, transform .1s;
+}
+.tab-icon { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tab.active { color: var(--accent); border: 0; }
+.tab.active .tab-icon { filter: drop-shadow(0 0 6px rgba(255, 107, 26, .6)); }
+.tab.active::before { /* 上に短いオレンジの線 */
+  content: ""; position: absolute; top: -6px; width: 28px; height: 3px; border-radius: 0 0 3px 3px; background: var(--accent);
+}
+.toast { bottom: calc(90px + env(safe-area-inset-bottom)); }
+.player { scroll-margin-top: 70px; }
+
+/* 押したときに少し沈む動き(押した手ごたえ) */
+.tab:active, .chip:active, .step:active, .primary:active, .link-btn:active, .mic-btn:active { transform: scale(.95); }
+.chip, .step, .primary, .link-btn, .mic-btn { transition: transform .1s, background-color .15s, box-shadow .15s; }
 
 /* カード・見出し */
 .card { border: 0; border-radius: 16px; }
-.card-title { letter-spacing: .08em; font-size: 12px; font-weight: 800; }
+.card-title { letter-spacing: .08em; font-size: 12px; font-weight: 800; color: var(--beige); }
+.top h1 { color: var(--beige); }
+.unit, .history-head .bw { color: var(--beige); opacity: .8; }
+.history-head h3 { color: var(--beige); }
 
 /* 枠線をなくしてすっきり */
 input, textarea { background: var(--chip-bg); border-color: transparent; }
 .chip { font-weight: 600; background: var(--chip-bg); border-color: transparent; }
-.chip.active { color: var(--on-accent); }
+.chip.active { color: var(--on-accent); box-shadow: 0 4px 14px rgba(255, 107, 26, .35); }
 .chip.add { background: transparent; border-color: var(--line); }
 .step, .link-btn { background: var(--chip-bg); border: 0; font-weight: 700; }
 .video-thumb { border: 0; background-color: var(--chip-bg); }
