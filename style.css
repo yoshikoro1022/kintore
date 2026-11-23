@@ -49,7 +49,7 @@ body {
 .tab {
   flex: 1; background: none; border: 0;
   border-bottom: 3px solid transparent;
-  padding: 10px; font-size: 16px; font-weight: 600; color: var(--sub);
+  padding: 10px 4px; font-size: 16px; font-weight: 600; color: var(--sub); white-space: nowrap;
 }
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
@@ -125,26 +125,46 @@ input {
 .history-head .bw { color: var(--sub); font-size: 14px; }
 .history-open { font: inherit; font-size: 13px; color: var(--accent); background: none; border: 0; padding: 6px 0 0; }
 
-/* やる気スイッチ(音楽・動画のボタン) */
-.links-bar { display: flex; flex-direction: column; align-items: flex-end; margin-bottom: 8px; }
-.link-buttons { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; }
+/* 音楽・動画タブ */
+.section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.section-head .card-title { margin: 0; }
+.text-btn { font: inherit; font-size: 14px; color: var(--accent); background: none; border: 0; padding: 6px 2px; }
+.link-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .link-btn {
-  flex: 1 1 80px; display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 4px; min-width: 0;
-  border: 1px solid var(--line); border-radius: 12px; background: var(--card);
-  color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; white-space: nowrap;
+  display: flex; align-items: center; justify-content: center; height: 52px; padding: 0 6px; min-width: 0;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--bg);
+  color: var(--text); text-decoration: none; font-size: 15px; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .link-btn:active { background: var(--accent-weak); }
-.link-edit-toggle { font: inherit; font-size: 13px; color: var(--sub); background: none; border: 0; padding: 4px 2px 0; }
-.link-editor[hidden] { display: none; }
+.link-editor { margin-top: 12px; }
+.link-editor[hidden], .player[hidden], .player-controls[hidden] { display: none; }
 .link-edit-row {
   display: grid; grid-template-columns: 1fr auto; gap: 6px 8px;
   padding: 10px 0; border-top: 1px solid var(--line);
 }
-.link-edit-row:first-child { border-top: 0; padding-top: 0; }
 .link-edit-row input[type="url"] { grid-column: 1; font-size: 14px; }
 .link-edit-row .del { grid-column: 2; grid-row: 1 / span 2; font: inherit; border: 0; background: none; color: var(--danger); font-size: 14px; padding: 8px; }
 .link-editor .chip.add { margin: 8px 0; }
 .hint { color: var(--sub); font-size: 13px; margin: 4px 0 12px; }
+
+/* 動画プレイヤー(ショート動画は縦長なので 9:16) */
+.player { scroll-margin-top: 110px; width: 100%; max-width: 360px; margin: 0 auto 10px; aspect-ratio: 9 / 16; background: #000; border-radius: 12px; overflow: hidden; }
+.player.wide { max-width: none; aspect-ratio: 16 / 9; }
+.player iframe { width: 100%; height: 100%; border: 0; display: block; }
+.player-controls { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+.player-controls .chip { white-space: nowrap; padding: 8px 12px; font-size: 14px; }
+.video-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.video-item { position: relative; }
+.video-thumb {
+  width: 100%; aspect-ratio: 9 / 16; border: 1px solid var(--line); border-radius: 10px; padding: 6px;
+  background: var(--bg) center / cover no-repeat; color: var(--text); font: inherit; font-size: 12px;
+  display: flex; align-items: flex-end; justify-content: flex-start; text-align: left; overflow: hidden;
+}
+.video-thumb.has-img { color: #fff; text-shadow: 0 1px 3px #000; }
+.video-thumb.playing { outline: 3px solid var(--accent); }
+.video-del { position: absolute; top: 4px; right: 4px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 14px; }
+.video-list .empty { grid-column: 1 / -1; }
 
 /* 下に一瞬出るお知らせ */
 .toast {
