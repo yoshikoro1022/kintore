@@ -48,6 +48,8 @@ const DEFAULT_LINKS = [
 const data = loadData();
 // 古いデータには links がないので、そのときは最初のボタンを入れておく
 if (!Array.isArray(data.links)) data.links = DEFAULT_LINKS.map((l) => ({ ...l }));
+// マインド日記 [{ id, date, mood, text, createdAt }, ...]。古いデータにはないので空で用意
+if (!Array.isArray(data.minds)) data.minds = [];
 
 // 今、画面で入力中の値
 const form = { exercise: data.exercises[0] || '', weight: 20, reps: 10, sets: 3 };
@@ -393,6 +395,168 @@ function setupLinks() {
   renderLinks();
 }
 
+// ---------- マインド日記 ----------
+// 気分を1タップ＋ひとことを話して残す。
+// 「🎤 押して話す」は、ブラウザの音声入力の仕組み(Web Speech)を使います。
+// iPhoneのホーム画面アプリでは使えないことがあるので、そのときは
+// キーボードのマイクボタンで話してもらう(どちらでも文字が入ればOK)。
+const MOODS = ['🔥 やる気', '🙂 ふつう', '😮‍💨 だるい', '😣 しんどい'];
+let mindMood = '';
+
+// 今日の気分ボタン
+function renderMoods() {
+  const box = $('mind-moods');
+  box.innerHTML = '';
+  for (const m of MOODS) {
+    const b = document.createElement('button');
+    b.className = 'chip' + (m === mindMood ? ' active' : '');
+    b.textContent = m;
+    b.addEventListener('click', () => {
+      mindMood = mindMood === m ? '' : m; // もう一度押すと取り消し
+      renderMoods();
+    });
+    box.appendChild(b);
+  }
+}
+
+// 長い文から「ひとこと見出し」を作る(AIではなく、最初の1文を短く切るだけ)
+function mindTitle(text) {
+  const first = text.split(/[。！？!?\n]/).find((t) => t.trim()) || '';
+  const t = first.trim();
+  return t.length > 20 ? t.slice(0, 20) + '…' : t;
+}
+
+// '2026-11-23' → '261123'(Notionのマインド日記のページ名ルールに合わせる)
+function toYYMMDD(s) {
+  return s.replaceAll('-', '').slice(2);
+}
+
+function saveMind() {
+  const text = $('mind-text').value.trim();
+  if (!text && !mindMood) {
+    showToast('気分かひとことを入れてください');
+    return;
+  }
+  data.minds.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    date: toDateStr(new Date()),
+    mood: mindMood,
+    text,
+    createdAt: Date.now(),
+  });
+  saveData();
+  $('mind-text').value = '';
+  mindMood = '';
+  renderMoods();
+  renderMindList();
+  showToast('マインド日記に残しました');
+}
+
+// Notionに貼りやすい形にしてコピー(1行目がページ名「261123‐ひとこと」)
+async function copyMindForNotion(m) {
+  const title = `${toYYMMDD(m.date)}‐${mindTitle(m.text) || '筋トレ'}`;
+  const body = [m.mood && `気分：${m.mood}`, m.text].filter(Boolean).join('\n');
+  const all = `${title}\n${body}`;
+  try {
+    await navigator.clipboard.writeText(all);
+    showToast('コピーしました。Notionに貼り付けてください');
+  } catch (e) {
+    prompt('下の文を長押ししてコピーしてください', all);
+  }
+}
+
+function deleteMind(id) {
+  if (!confirm('このマインド日記を削除しますか？')) return;
+  data.minds = data.minds.filter((m) => m.id !== id);
+  saveData();
+  renderMindList();
+}
+
+function renderMindList() {
+  const list = $('mind-list');
+  list.innerHTML = '';
+  const items = [...data.minds].sort((a, b) => b.createdAt - a.createdAt);
+  if (items.length === 0) {
+    list.innerHTML = '<li><p class="empty">まだありません。今の気持ちをひとこと残してみよう</p></li>';
+    return;
+  }
+  for (const m of items) {
+    const li = document.createElement('li');
+    li.className = 'mind-item';
+
+    const head = document.createElement('div');
+    head.className = 'mind-head';
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = `${formatDate(m.date)}　${m.mood}`;
+    head.appendChild(name);
+
+    const body = document.createElement('div');
+    body.className = 'mind-body';
+    body.textContent = m.text;
+
+    const actions = document.createElement('div');
+    actions.className = 'mind-actions';
+    const copy = document.createElement('button');
+    copy.textContent = 'Notion用にコピー';
+    copy.addEventListener('click', () => copyMindForNotion(m));
+    const del = document.createElement('button');
+    del.className = 'del';
+    del.textContent = '削除';
+    del.addEventListener('click', () => deleteMind(m.id));
+    actions.append(copy, del);
+
+    li.append(head, body, actions);
+    list.appendChild(li);
+  }
+}
+
+// 「🎤 押して話す」ボタン
+function setupMic() {
+  const btn = $('mind-mic');
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Rec) {
+    // 音声入力の仕組みがない → ボタンを隠して、キーボードのマイクを使ってもらう
+    btn.hidden = true;
+    return;
+  }
+  let rec = null;
+  const stop = () => {
+    btn.classList.remove('listening');
+    btn.textContent = '🎤 押して話す';
+    rec = null;
+  };
+  btn.addEventListener('click', () => {
+    if (rec) { rec.stop(); return; } // 話している途中でもう一度押すと終わり
+    rec = new Rec();
+    rec.lang = 'ja-JP';
+    rec.interimResults = false;
+    rec.continuous = true;
+    const before = $('mind-text').value.trim();
+    let heard = '';
+    rec.onresult = (e) => {
+      heard = '';
+      for (const r of e.results) heard += r[0].transcript;
+      $('mind-text').value = [before, heard].filter(Boolean).join('\n');
+    };
+    rec.onerror = () => {
+      showToast('音声入力が使えませんでした。キーボードのマイクで話してください');
+      $('mind-text').focus();
+    };
+    rec.onend = stop;
+    rec.start();
+    btn.classList.add('listening');
+    btn.textContent = '■ 話し終わったらタップ';
+  });
+}
+
+function setupMind() {
+  $('mind-save').addEventListener('click', saveMind);
+  setupMic();
+  renderMoods();
+  renderMindList();
+}
+
 // ---------- タブの切り替え ----------
 function showView(name) {
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.view === name));
@@ -417,6 +581,7 @@ function init() {
 
   setupSteppers();
   setupLinks();
+  setupMind();
   selectExercise(form.exercise);
   onDateChange();
 

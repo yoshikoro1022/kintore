@@ -146,6 +146,26 @@ input {
 .link-editor .chip.add { margin: 8px 0; }
 .hint { color: var(--sub); font-size: 13px; margin: 4px 0 12px; }
 
+/* マインド日記 */
+textarea {
+  font: inherit; font-size: 17px; color: var(--text);
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px; width: 100%; resize: vertical; margin: 10px 0 8px;
+}
+.mic-btn {
+  width: 100%; height: 64px; border: 2px solid var(--accent); border-radius: 14px;
+  background: var(--accent-weak); color: var(--accent); font: inherit; font-size: 18px; font-weight: 700;
+}
+.mic-btn.listening { background: var(--danger); border-color: var(--danger); color: #fff; }
+.mic-btn[hidden] { display: none; }
+.mind-guide { margin-top: 0; }
+.mind-item { flex-direction: column; align-items: stretch !important; }
+.mind-item .mind-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.mind-item .mind-body { white-space: pre-wrap; font-size: 14px; color: var(--sub); margin-top: 4px; }
+.mind-item .mind-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.mind-item .mind-actions button { font: inherit; font-size: 13px; border: 0; background: none; color: var(--accent); padding: 6px 8px; }
+.mind-item .mind-actions .del { color: var(--danger); }
+
 /* 下に一瞬出るお知らせ */
 .toast {
   position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom));

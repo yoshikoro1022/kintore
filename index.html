@@ -22,6 +22,7 @@
     <nav class="tabs">
       <button class="tab active" data-view="record">記録</button>
       <button class="tab" data-view="history">履歴</button>
+      <button class="tab" data-view="mind">マインド</button>
     </nav>
   </header>
 
@@ -81,6 +82,28 @@
       <div class="card">
         <div class="card-title">この日の記録</div>
         <ul id="day-list" class="log"></ul>
+      </div>
+    </section>
+
+    <!-- ===== マインド日記タブ =====
+         話した言葉を文字にして、気分と一緒に残す場所。動きは app.js の「マインド日記」の部分。 -->
+    <section id="view-mind" class="view">
+      <div class="card">
+        <div class="card-title">今日の気分（1つタップ）</div>
+        <div id="mind-moods" class="chips"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">ひとこと（話してOK）</div>
+        <p class="hint mind-guide">例：「今日のテーマは〇〇。調子は〇〇。次は〇〇する。」</p>
+        <button id="mind-mic" class="mic-btn">🎤 押して話す</button>
+        <textarea id="mind-text" rows="5" placeholder="ここに文字が入ります。キーボードのマイクで話してもOK"></textarea>
+        <button id="mind-save" class="primary">日記に残す</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">これまでのマインド日記</div>
+        <ul id="mind-list" class="log"></ul>
       </div>
     </section>
 
