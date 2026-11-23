@@ -2,29 +2,23 @@
    シンプルでフラットなデザイン。息が上がっていても押しやすいように
    ボタンは大きめにしています。 */
 
-/* 色をまとめて定義(ここを変えると全体の色が変わる) */
+/* 色をまとめて定義(ここを変えると全体の色が変わる)
+   デザインは「黒×オレンジ」。ジムでも見やすいよう、いつも暗い背景にしています。 */
 :root {
-  --bg: #f5f6f8;
-  --card: #ffffff;
-  --text: #1d2129;
-  --sub: #6b7280;
-  --line: #e5e7eb;
-  --accent: #1f6feb;
-  --accent-weak: #e8f0fe;
-  --danger: #d93025;
-}
-/* スマホがダークモードのときの色 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #111418;
-    --card: #1b1f24;
-    --text: #e8eaed;
-    --sub: #9aa0a6;
-    --line: #2d333b;
-    --accent: #4c8dff;
-    --accent-weak: #1c2a44;
-    --danger: #f28b82;
-  }
+  --bg: #121316;          /* 一番うしろの背景 */
+  --card: #1c1e22;        /* カード(枠)の色 */
+  --chip-bg: #272a30;     /* ボタンや入力欄の色 */
+  --text: #f4f4f5;        /* 文字 */
+  --sub: #9a9ca3;         /* うすい文字 */
+  --line: #2c2f35;        /* 区切り線 */
+  --accent: #ff6b1a;      /* 差し色(オレンジ) */
+  --accent-weak: #2a1d14; /* 差し色のうすい版 */
+  --on-accent: #ffffff;   /* オレンジの上に乗る文字 */
+  --beige: #d8bf98;       /* 差し色2(ベージュ):見出しや単位などに少しだけ */
+  --danger: #ff6b6b;      /* 削除など */
+  --primary-bg: linear-gradient(135deg, #ff8a1a, #ff3d2e); /* 「記録する」ボタン */
+  --primary-shadow: 0 6px 20px rgba(255, 90, 30, .35);
+  color-scheme: dark;     /* 日付の入力欄なども暗い色にする */
 }
 
 * { box-sizing: border-box; }
@@ -194,3 +188,75 @@ textarea {
   font-size: 14px; opacity: 0; transition: .2s; pointer-events: none; max-width: 90vw;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== デザイン(黒×オレンジ)の仕上げ =====
+   上の部品の見た目に「かっこよさ」を上乗せする部分です。
+   C#でいう「継承して一部だけ上書き(override)」のようなイメージで、
+   後に書いたほうが優先されます。 */
+body { font-feature-settings: "palt"; }
+
+/* タイトル:太い斜め文字+左にオレンジの線 */
+.top { background: var(--bg); border-bottom: 0; padding-bottom: 2px; }
+.top h1 { font-size: 22px; font-weight: 900; font-style: italic; letter-spacing: .04em; margin-bottom: 10px; }
+.top h1::before {
+  content: ""; display: inline-block; width: 6px; height: 18px; margin-right: 8px;
+  background: var(--accent); transform: skewX(-15deg); vertical-align: -2px;
+}
+
+/* 下のタブバー:親指で押しやすい位置。選ばれているタブはオレンジに光る */
+main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  background: rgba(18, 19, 22, .92); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+}
+.tab {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  border: 0; padding: 6px 2px; font-size: 11px; font-weight: 700; color: var(--sub);
+  transition: color .15s, transform .1s;
+}
+.tab-icon { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tab.active { color: var(--accent); border: 0; }
+.tab.active .tab-icon { filter: drop-shadow(0 0 6px rgba(255, 107, 26, .6)); }
+.tab.active::before { /* 上に短いオレンジの線 */
+  content: ""; position: absolute; top: -6px; width: 28px; height: 3px; border-radius: 0 0 3px 3px; background: var(--accent);
+}
+.toast { bottom: calc(90px + env(safe-area-inset-bottom)); }
+.player { scroll-margin-top: 70px; }
+
+/* 押したときに少し沈む動き(押した手ごたえ) */
+.tab:active, .chip:active, .step:active, .primary:active, .link-btn:active, .mic-btn:active { transform: scale(.95); }
+.chip, .step, .primary, .link-btn, .mic-btn { transition: transform .1s, background-color .15s, box-shadow .15s; }
+
+/* カード・見出し */
+.card { border: 0; border-radius: 16px; }
+.card-title { letter-spacing: .08em; font-size: 12px; font-weight: 800; color: var(--beige); }
+.top h1 { color: var(--beige); }
+.unit, .history-head .bw { color: var(--beige); opacity: .8; }
+.history-head h3 { color: var(--beige); }
+
+/* 枠線をなくしてすっきり */
+input, textarea { background: var(--chip-bg); border-color: transparent; }
+.chip { font-weight: 600; background: var(--chip-bg); border-color: transparent; }
+.chip.active { color: var(--on-accent); box-shadow: 0 4px 14px rgba(255, 107, 26, .35); }
+.chip.add { background: transparent; border-color: var(--line); }
+.step, .link-btn { background: var(--chip-bg); border: 0; font-weight: 700; }
+.video-thumb { border: 0; background-color: var(--chip-bg); }
+
+/* 前回の記録:左にオレンジの線 */
+.previous { border-left: 4px solid var(--accent); border-radius: 8px; }
+
+/* 重さ・回数の数字を大きく太く */
+.stepper-value { font-size: 32px; font-weight: 900; border: 0; background: transparent; font-variant-numeric: tabular-nums; }
+
+/* 「記録する」ボタン:オレンジ→赤のグラデーション */
+.primary { background: var(--primary-bg); color: var(--on-accent); font-weight: 900; letter-spacing: .12em; box-shadow: var(--primary-shadow); }
+.mic-btn { border-width: 1px; }
+
+.log .name { font-weight: 800; }
+
+/* タイトル横のモリフクロウ(自作キャラ) */
+.top h1 { display: flex; align-items: center; }
+.top h1::before { flex: none; }
+.owl { width: 36px; height: 36px; margin-left: auto; }

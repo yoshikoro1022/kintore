@@ -6,11 +6,11 @@
        見た目(色や大きさ)は style.css、動きは app.js が担当します。 -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1f6feb">
+  <meta name="theme-color" content="#121316">
   <!-- iPhoneで「ホーム画面に追加」したとき、アプリっぽく全画面で開くための設定 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="筋トレ記録">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="stylesheet" href="style.css">
@@ -18,13 +18,7 @@
 </head>
 <body>
   <header class="top">
-    <h1>筋トレ記録</h1>
-    <nav class="tabs">
-      <button class="tab active" data-view="record">記録</button>
-      <button class="tab" data-view="history">履歴</button>
-      <button class="tab" data-view="mind">マインド</button>
-      <button class="tab" data-view="motivation">音楽・動画</button>
-    </nav>
+    <h1>筋トレ記録<img class="owl" src="owl.svg" alt=""></h1>
   </header>
 
   <main>
@@ -133,6 +127,15 @@
       </div>
     </section>
   </main>
+
+  <!-- 下のタブ(親指で押しやすいように画面の下に置いています)
+       アイコンは自作の線画なので著作権の心配はありません -->
+  <nav class="tabs">
+    <button class="tab active" data-view="record"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/></svg><span>記録</span></button>
+    <button class="tab" data-view="history"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span>履歴</span></button>
+    <button class="tab" data-view="mind"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>マインド</span></button>
+    <button class="tab" data-view="motivation"><svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg><span>音楽・動画</span></button>
+  </nav>
 
   <div id="toast" class="toast" role="status"></div>
   <script src="app.js"></script>

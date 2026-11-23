@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+<!-- オリジナルのモリフクロウ(ふわふわ) -->
+<g>
+ <circle cx="162.0" cy="112.0" r="16" fill="#8b5e3c"/><circle cx="160.2" cy="127.8" r="16" fill="#8b5e3c"/><circle cx="154.9" cy="142.7" r="16" fill="#8b5e3c"/><circle cx="146.4" cy="155.8" r="16" fill="#8b5e3c"/><circle cx="135.2" cy="166.3" r="16" fill="#8b5e3c"/><circle cx="122.0" cy="173.7" r="16" fill="#8b5e3c"/><circle cx="107.5" cy="177.5" r="16" fill="#8b5e3c"/><circle cx="92.5" cy="177.5" r="16" fill="#8b5e3c"/><circle cx="78.0" cy="173.7" r="16" fill="#8b5e3c"/><circle cx="64.8" cy="166.3" r="16" fill="#8b5e3c"/><circle cx="53.6" cy="155.8" r="16" fill="#8b5e3c"/><circle cx="45.1" cy="142.7" r="16" fill="#8b5e3c"/><circle cx="39.8" cy="127.8" r="16" fill="#8b5e3c"/><circle cx="38.0" cy="112.0" r="16" fill="#8b5e3c"/><circle cx="39.8" cy="96.2" r="16" fill="#8b5e3c"/><circle cx="45.1" cy="81.3" r="16" fill="#8b5e3c"/><circle cx="53.6" cy="68.2" r="16" fill="#8b5e3c"/><circle cx="64.8" cy="57.7" r="16" fill="#8b5e3c"/><circle cx="78.0" cy="50.3" r="16" fill="#8b5e3c"/><circle cx="92.5" cy="46.5" r="16" fill="#8b5e3c"/><circle cx="107.5" cy="46.5" r="16" fill="#8b5e3c"/><circle cx="122.0" cy="50.3" r="16" fill="#8b5e3c"/><circle cx="135.2" cy="57.7" r="16" fill="#8b5e3c"/><circle cx="146.4" cy="68.2" r="16" fill="#8b5e3c"/><circle cx="154.9" cy="81.3" r="16" fill="#8b5e3c"/><circle cx="160.2" cy="96.2" r="16" fill="#8b5e3c"/>
+ <ellipse cx="100" cy="112" rx="64" ry="68" fill="#8b5e3c"/>
+ <!-- 頭のふわ毛 -->
+ <path d="M86 46 q6 -14 14 -4 q8 -12 14 4" fill="#8b5e3c"/>
+ <!-- 翼 -->
+ <path d="M44 110 q-6 34 22 56 q-4 -30 8 -52z" fill="#6e4529"/>
+ <path d="M156 110 q6 34 -22 56 q4 -30 -8 -52z" fill="#6e4529"/>
+ <!-- おなか -->
+ <circle cx="130.0" cy="138.0" r="8" fill="#ead7b7"/><circle cx="128.2" cy="148.9" r="8" fill="#ead7b7"/><circle cx="123.0" cy="158.6" r="8" fill="#ead7b7"/><circle cx="115.0" cy="165.7" r="8" fill="#ead7b7"/><circle cx="105.2" cy="169.5" r="8" fill="#ead7b7"/><circle cx="94.8" cy="169.5" r="8" fill="#ead7b7"/><circle cx="85.0" cy="165.7" r="8" fill="#ead7b7"/><circle cx="77.0" cy="158.6" r="8" fill="#ead7b7"/><circle cx="71.8" cy="148.9" r="8" fill="#ead7b7"/><circle cx="70.0" cy="138.0" r="8" fill="#ead7b7"/><circle cx="71.8" cy="127.1" r="8" fill="#ead7b7"/><circle cx="77.0" cy="117.4" r="8" fill="#ead7b7"/><circle cx="85.0" cy="110.3" r="8" fill="#ead7b7"/><circle cx="94.8" cy="106.5" r="8" fill="#ead7b7"/><circle cx="105.2" cy="106.5" r="8" fill="#ead7b7"/><circle cx="115.0" cy="110.3" r="8" fill="#ead7b7"/><circle cx="123.0" cy="117.4" r="8" fill="#ead7b7"/><circle cx="128.2" cy="127.1" r="8" fill="#ead7b7"/>
+ <ellipse cx="100" cy="138" rx="32" ry="34" fill="#ead7b7"/>
+ <g stroke="#b88a5e" stroke-width="3" stroke-linecap="round" fill="none">
+  <path d="M86 128 l4 4 l4 -4"/><path d="M106 128 l4 4 l4 -4"/>
+  <path d="M96 144 l4 4 l4 -4"/><path d="M84 156 l4 4 l4 -4"/><path d="M108 156 l4 4 l4 -4"/>
+ </g>
+ <!-- 顔(ハート形の顔盤) -->
+ <circle cx="100.0" cy="88.0" r="6" fill="#d9b98f"/><circle cx="97.6" cy="98.4" r="6" fill="#d9b98f"/><circle cx="91.0" cy="106.8" r="6" fill="#d9b98f"/><circle cx="81.3" cy="111.4" r="6" fill="#d9b98f"/><circle cx="70.7" cy="111.4" r="6" fill="#d9b98f"/><circle cx="61.0" cy="106.8" r="6" fill="#d9b98f"/><circle cx="54.4" cy="98.4" r="6" fill="#d9b98f"/><circle cx="52.0" cy="88.0" r="6" fill="#d9b98f"/><circle cx="54.4" cy="77.6" r="6" fill="#d9b98f"/><circle cx="61.0" cy="69.2" r="6" fill="#d9b98f"/><circle cx="70.7" cy="64.6" r="6" fill="#d9b98f"/><circle cx="81.3" cy="64.6" r="6" fill="#d9b98f"/><circle cx="91.0" cy="69.2" r="6" fill="#d9b98f"/><circle cx="97.6" cy="77.6" r="6" fill="#d9b98f"/><circle cx="148.0" cy="88.0" r="6" fill="#d9b98f"/><circle cx="145.6" cy="98.4" r="6" fill="#d9b98f"/><circle cx="139.0" cy="106.8" r="6" fill="#d9b98f"/><circle cx="129.3" cy="111.4" r="6" fill="#d9b98f"/><circle cx="118.7" cy="111.4" r="6" fill="#d9b98f"/><circle cx="109.0" cy="106.8" r="6" fill="#d9b98f"/><circle cx="102.4" cy="98.4" r="6" fill="#d9b98f"/><circle cx="100.0" cy="88.0" r="6" fill="#d9b98f"/><circle cx="102.4" cy="77.6" r="6" fill="#d9b98f"/><circle cx="109.0" cy="69.2" r="6" fill="#d9b98f"/><circle cx="118.7" cy="64.6" r="6" fill="#d9b98f"/><circle cx="129.3" cy="64.6" r="6" fill="#d9b98f"/><circle cx="139.0" cy="69.2" r="6" fill="#d9b98f"/><circle cx="145.6" cy="77.6" r="6" fill="#d9b98f"/>
+ <circle cx="76" cy="88" r="26" fill="#d9b98f"/><circle cx="124" cy="88" r="26" fill="#d9b98f"/>
+ <path d="M100 66 v40" stroke="#6e4529" stroke-width="3" stroke-linecap="round" opacity=".35"/>
+ <!-- 目 -->
+ <circle cx="78" cy="90" r="15" fill="#1b1310"/><circle cx="122" cy="90" r="15" fill="#1b1310"/>
+ <circle cx="83" cy="84" r="5" fill="#fff"/><circle cx="127" cy="84" r="5" fill="#fff"/>
+ <circle cx="73" cy="96" r="2.2" fill="#fff" opacity=".8"/><circle cx="117" cy="96" r="2.2" fill="#fff" opacity=".8"/>
+ <!-- ほっぺ -->
+ <ellipse cx="62" cy="108" rx="7" ry="4" fill="#ff8a6a" opacity=".45"/><ellipse cx="138" cy="108" rx="7" ry="4" fill="#ff8a6a" opacity=".45"/>
+ <!-- くちばし -->
+ <path d="M94 104 q6 14 12 0 q-6 -4 -12 0z" fill="#ff7a1a"/>
+ <!-- 足 -->
+ <g fill="#ff7a1a"><ellipse cx="86" cy="178" rx="9" ry="5"/><ellipse cx="114" cy="178" rx="9" ry="5"/></g>
+</g></svg>
