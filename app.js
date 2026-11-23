@@ -400,10 +400,16 @@ function setupLinks() {
 }
 
 // ---------- マインド日記 ----------
-// 気分を1タップ＋ひとことを話して残す。
-// 「🎤 押して話す」は、ブラウザの音声入力の仕組み(Web Speech)を使います。
-// iPhoneのホーム画面アプリでは使えないことがあるので、そのときは
-// キーボードのマイクボタンで話してもらう(どちらでも文字が入ればOK)。
+// 気分を1タップ＋3つの質問に話して答える。
+// 音声入力は iPhone のキーボードのマイクを使う(ホーム画面アプリでは
+// ブラウザの音声入力の仕組みが動かないため)。欄をタップすればキーボードが出る。
+const DEFAULT_QUESTIONS = ['今日のテーマは？', '調子はどう？', '次にやることは？'];
+if (!Array.isArray(data.mindQuestions) || data.mindQuestions.length === 0) {
+  data.mindQuestions = [...DEFAULT_QUESTIONS];
+}
+// 1週間たまったら「Claudeに送る？」と出す
+const REMIND_DAYS = 7;
+const CLAUDE_URL = 'https://claude.ai/';
 const MOODS = ['🔥 やる気', '🙂 ふつう', '😮‍💨 だるい', '😣 しんどい'];
 let mindMood = '';
 
@@ -418,6 +424,7 @@ function renderMoods() {
     b.addEventListener('click', () => {
       mindMood = mindMood === m ? '' : m; // もう一度押すと取り消し
       renderMoods();
+      renderMindPast();
     });
     box.appendChild(b);
   }
@@ -435,10 +442,75 @@ function toYYMMDD(s) {
   return s.replaceAll('-', '').slice(2);
 }
 
+// 3つの質問の入力欄を作る
+function renderQuestions() {
+  const box = $('mind-questions');
+  box.innerHTML = '';
+  data.mindQuestions.forEach((q, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'mind-q';
+    const label = document.createElement('label');
+    label.textContent = q;
+    label.htmlFor = `mind-a${i}`;
+    const ta = document.createElement('textarea');
+    ta.id = `mind-a${i}`;
+    ta.rows = 2;
+    ta.placeholder = 'タップして🎤で話す';
+    wrap.append(label, ta);
+    box.appendChild(wrap);
+  });
+}
+
+function editQuestions() {
+  const now = data.mindQuestions.join('／');
+  const input = prompt('質問を「／」で区切って入力してください（3つくらいがおすすめ）', now);
+  if (input === null) return;
+  const qs = input.split(/[／/]/).map((t) => t.trim()).filter(Boolean);
+  data.mindQuestions = qs.length ? qs : [...DEFAULT_QUESTIONS];
+  saveData();
+  renderQuestions();
+}
+
+// 今日の筋トレ内容を1行にまとめる(日記に自動でくっつける)
+function todayWorkout() {
+  const today = toDateStr(new Date());
+  return data.records
+    .filter((r) => r.date === today)
+    .sort((a, b) => a.createdAt - b.createdAt)
+    .map((r) => `${r.exercise} ${formatSet(r)}`)
+    .join('、');
+}
+
+function renderMindWorkout() {
+  const w = todayWorkout();
+  $('mind-workout').textContent = w ? `今日のトレーニングも一緒に残すよ：${w}` : '';
+}
+
+// だるい・しんどいを選んだら、やる気があった日の自分のことばを1つ出す
+function renderMindPast() {
+  const box = $('mind-past');
+  const low = mindMood.includes('だるい') || mindMood.includes('しんどい');
+  const good = data.minds.filter((m) => m.mood.includes('やる気') && m.text);
+  if (!low || good.length === 0) {
+    box.hidden = true;
+    return;
+  }
+  const pick = good[Math.floor(Math.random() * good.length)];
+  box.textContent = `やる気があった ${formatDate(pick.date)} の自分：\n${pick.text}`;
+  box.hidden = false;
+}
+
 function saveMind() {
-  const text = $('mind-text').value.trim();
+  // 答えた質問だけを「質問：答え」の形で1つの文にする
+  const lines = [];
+  data.mindQuestions.forEach((q, i) => {
+    const el = $(`mind-a${i}`);
+    const a = el ? el.value.trim() : '';
+    if (a) lines.push(`${q}${a}`);
+  });
+  const text = lines.join('\n');
   if (!text && !mindMood) {
-    showToast('気分かひとことを入れてください');
+    showToast('気分か、どれか1つの質問に答えてね');
     return;
   }
   data.minds.push({
@@ -446,13 +518,16 @@ function saveMind() {
     date: toDateStr(new Date()),
     mood: mindMood,
     text,
+    workout: todayWorkout(),
     createdAt: Date.now(),
   });
   saveData();
-  $('mind-text').value = '';
+  renderQuestions();
   mindMood = '';
   renderMoods();
+  renderMindPast();
   renderMindList();
+  renderMindReminder();
   showToast('マインド日記に残しました');
   owlSay('mindSaved');
 }
@@ -460,7 +535,7 @@ function saveMind() {
 // Notionに貼りやすい形にしてコピー(1行目がページ名「261123‐ひとこと」)
 async function copyMindForNotion(m) {
   const title = `${toYYMMDD(m.date)}‐${mindTitle(m.text) || '筋トレ'}`;
-  const body = [m.mood && `気分：${m.mood}`, m.text].filter(Boolean).join('\n');
+  const body = [m.mood && `気分：${m.mood}`, m.text, m.workout && `トレーニング：${m.workout}`].filter(Boolean).join('\n');
   const all = `${title}\n${body}`;
   try {
     await navigator.clipboard.writeText(all);
@@ -485,17 +560,36 @@ async function copyMindBulk() {
   for (const m of items) {
     lines.push(`■ ${m.date} ${m.mood}`.trim());
     if (m.text) lines.push(m.text);
+    if (m.workout) lines.push(`トレーニング：${m.workout}`);
     lines.push('');
   }
   const all = lines.join('\n');
+  // コピーを始めてすぐClaudeを開く(iPhoneは「押した直後」でないと別画面を開かせてくれないため、
+  // コピーが終わるのを待たずに開く)
+  const copying = navigator.clipboard ? navigator.clipboard.writeText(all) : Promise.reject();
+  window.open(CLAUDE_URL, '_blank'); // アプリが入っていればアプリで開く
   try {
-    await navigator.clipboard.writeText(all);
+    await copying;
     showToast(`${items.length}件コピーしました。Claudeに貼り付けてください`);
   } catch (e) {
     prompt('下の文を長押ししてコピーしてください', all);
   }
   data.mindBulkCopiedAt = Date.now();
   saveData();
+  renderMindReminder();
+}
+
+// まだClaudeに送っていない日記が、いちばん古いもので7日以上前ならお知らせを出す
+function renderMindReminder() {
+  const since = data.mindBulkCopiedAt || 0;
+  const unsent = data.minds.filter((m) => m.createdAt > since);
+  const box = $('mind-reminder');
+  if (unsent.length === 0) { box.hidden = true; return; }
+  const oldest = Math.min(...unsent.map((m) => m.createdAt));
+  const days = (Date.now() - oldest) / 86400000;
+  if (days < REMIND_DAYS) { box.hidden = true; return; }
+  $('mind-reminder-text').textContent = `日記が${unsent.length}件たまったよ。Claudeに送ってまとめてもらおう`;
+  box.hidden = false;
 }
 
 function deleteMind(id) {
@@ -527,6 +621,12 @@ function renderMindList() {
     const body = document.createElement('div');
     body.className = 'mind-body';
     body.textContent = m.text;
+    if (m.workout) {
+      const w = document.createElement('div');
+      w.className = 'mind-workout-line';
+      w.textContent = `🏋 ${m.workout}`;
+      body.appendChild(w);
+    }
 
     const actions = document.createElement('div');
     actions.className = 'mind-actions';
@@ -699,51 +799,15 @@ function renderVideos() {
   }
 }
 
-// 「🎤 押して話す」ボタン
-function setupMic() {
-  const btn = $('mind-mic');
-  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!Rec) {
-    // 音声入力の仕組みがない → ボタンを隠して、キーボードのマイクを使ってもらう
-    btn.hidden = true;
-    return;
-  }
-  let rec = null;
-  const stop = () => {
-    btn.classList.remove('listening');
-    btn.textContent = '🎤 押して話す';
-    rec = null;
-  };
-  btn.addEventListener('click', () => {
-    if (rec) { rec.stop(); return; } // 話している途中でもう一度押すと終わり
-    rec = new Rec();
-    rec.lang = 'ja-JP';
-    rec.interimResults = false;
-    rec.continuous = true;
-    const before = $('mind-text').value.trim();
-    let heard = '';
-    rec.onresult = (e) => {
-      heard = '';
-      for (const r of e.results) heard += r[0].transcript;
-      $('mind-text').value = [before, heard].filter(Boolean).join('\n');
-    };
-    rec.onerror = () => {
-      showToast('音声入力が使えませんでした。キーボードのマイクで話してください');
-      $('mind-text').focus();
-    };
-    rec.onend = stop;
-    rec.start();
-    btn.classList.add('listening');
-    btn.textContent = '■ 話し終わったらタップ';
-  });
-}
-
 function setupMind() {
   $('mind-save').addEventListener('click', saveMind);
   $('mind-bulk').addEventListener('click', copyMindBulk);
-  setupMic();
+  $('mind-reminder-go').addEventListener('click', copyMindBulk);
+  $('mind-q-edit').addEventListener('click', editQuestions);
+  renderQuestions();
   renderMoods();
   renderMindList();
+  renderMindReminder();
 }
 
 function setupVideos() {
@@ -793,6 +857,7 @@ function showView(name) {
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.view === name));
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === `view-${name}`));
   if (name === 'history') { renderHistory(); renderBackupInfo(); }
+  if (name === 'mind') { renderMindWorkout(); renderMindReminder(); }
   if (name !== 'motivation' && playingId) closePlayer(); // 別のタブに移ったら動画を止める
   window.scrollTo(0, 0);
 }
