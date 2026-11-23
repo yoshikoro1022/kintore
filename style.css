@@ -255,3 +255,8 @@ input, textarea { background: var(--chip-bg); border-color: transparent; }
 .mic-btn { border-width: 1px; }
 
 .log .name { font-weight: 800; }
+
+/* タイトル横のモリフクロウ(自作キャラ) */
+.top h1 { display: flex; align-items: center; }
+.top h1::before { flex: none; }
+.owl { width: 36px; height: 36px; margin-left: auto; }
