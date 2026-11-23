@@ -287,3 +287,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .chip { border: 1.5px solid rgba(255, 107, 26, .45); }
 .chip.add { border: 1.5px dashed rgba(255, 107, 26, .6); color: var(--accent); }
 .link-btn { background: rgba(255, 107, 26, .16); border: 1.5px solid rgba(255, 107, 26, .55); }
+
+/* バックアップのボタン(2つ横並び) */
+.backup-buttons { display: flex; gap: 8px; }
+.backup-buttons .chip { flex: 1; padding: 12px; }

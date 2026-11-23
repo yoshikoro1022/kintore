@@ -791,7 +791,7 @@ function showView(name) {
   owlForView(name);
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.view === name));
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === `view-${name}`));
-  if (name === 'history') renderHistory();
+  if (name === 'history') { renderHistory(); renderBackupInfo(); }
   if (name !== 'motivation' && playingId) closePlayer(); // 別のタブに移ったら動画を止める
   window.scrollTo(0, 0);
 }
@@ -800,6 +800,101 @@ function onDateChange() {
   renderBodyWeight();
   renderPrevious();
   renderDayList();
+}
+
+// ---------- バックアップ(書き出し・読み込み) ----------
+// data をまるごと JSON の文字列にしてファイルにします。
+// C#でいう「オブジェクトをシリアライズしてファイルに保存」と同じです。
+const BACKUP_LAST_KEY = 'kintore-last-backup';
+
+function renderBackupInfo() {
+  let last = null;
+  try { last = localStorage.getItem(BACKUP_LAST_KEY); } catch (e) { /* 読めなくても動くように */ }
+  $('backup-info').textContent = `記録 ${data.records.length}件・日記 ${data.minds.length}件` +
+    (last ? ` ／ 最後の書き出し：${formatDate(last)}` : ' ／ まだ書き出していません');
+}
+
+async function exportBackup() {
+  const today = toDateStr(new Date());
+  const json = JSON.stringify({ app: 'kintore', version: 1, exportedAt: new Date().toISOString(), data }, null, 1);
+  const fileName = `kintore-backup-${today.replace(/-/g, '')}.json`;
+  const file = new File([json], fileName, { type: 'application/json' });
+
+  // iPhone では「共有」画面を出して「"ファイル"に保存」を選べるようにする
+  let done = false;
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: '筋トレ記録のバックアップ' });
+      done = true;
+    } catch (e) {
+      if (e.name === 'AbortError') return; // 自分でキャンセルしたときは何もしない
+    }
+  }
+  // 共有が使えないとき(パソコンなど)は普通にダウンロード
+  if (!done) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  try { localStorage.setItem(BACKUP_LAST_KEY, today); } catch (e) { /* 気にしない */ }
+  renderBackupInfo();
+  showToast('書き出しました');
+}
+
+// 同じ id のものは重ねない(二重に読み込んでも増えない)ように合体させる
+function mergeById(mine, theirs) {
+  const ids = new Set(mine.map((x) => x.id));
+  return [...mine, ...theirs.filter((x) => x && !ids.has(x.id))];
+}
+
+function importBackup(text) {
+  let incoming;
+  try {
+    const parsed = JSON.parse(text);
+    incoming = parsed.data || parsed; // 包み紙あり・なし どちらでもOK
+  } catch (e) {
+    alert('このファイルは読み込めませんでした。書き出したファイルを選んでください。');
+    return;
+  }
+  if (!incoming || !Array.isArray(incoming.records)) {
+    alert('筋トレ記録のバックアップではないようです。');
+    return;
+  }
+  const n = incoming.records.length;
+  const m = Array.isArray(incoming.minds) ? incoming.minds.length : 0;
+  if (!confirm(`記録 ${n}件・日記 ${m}件 を読み込みます。\n今ある記録は消さずに、足りない分だけ追加します。よろしいですか？`)) return;
+
+  data.records = mergeById(data.records, incoming.records);
+  data.minds = mergeById(data.minds, incoming.minds || []);
+  data.videos = mergeById(data.videos, incoming.videos || []);
+  data.bodyWeights = { ...(incoming.bodyWeights || {}), ...data.bodyWeights };
+  data.exercises = [...new Set([...data.exercises, ...(incoming.exercises || [])])];
+  if (Array.isArray(incoming.links) && incoming.links.length) data.links = incoming.links;
+  saveData();
+
+  renderExercises();
+  renderLinks();
+  renderVideos();
+  renderMindList();
+  renderHistory();
+  onDateChange();
+  renderBackupInfo();
+  showToast('読み込みました');
+}
+
+function setupBackup() {
+  $('backup-export').addEventListener('click', exportBackup);
+  $('backup-import').addEventListener('click', () => $('backup-file').click());
+  $('backup-file').addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    e.target.value = ''; // 同じファイルをもう一度選べるように空にしておく
+    if (f) importBackup(await f.text());
+  });
+  renderBackupInfo();
 }
 
 // ---------- 起動時の処理 ----------
@@ -816,6 +911,7 @@ function init() {
   setupLinks();
   setupMind();
   setupVideos();
+  setupBackup();
   selectExercise(form.exercise);
   onDateChange();
 
