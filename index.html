@@ -18,14 +18,7 @@
 </head>
 <body>
   <header class="top">
-    <div class="top-row">
-      <h1>筋トレ記録</h1>
-      <!-- フクロウ(このアプリのキャラクター)。吹き出しでひとこと話す -->
-      <div class="owl-talk">
-        <p id="owl-msg" class="bubble"></p>
-        <button id="owl" class="owl-btn" aria-label="フクロウ"><img class="owl" src="owl.svg" alt=""></button>
-      </div>
-    </div>
+    <h1>筋トレ記録</h1>
   </header>
 
   <main>
@@ -36,7 +29,12 @@
         <label class="field"><span>体重 (kg)</span><input type="number" id="bodyweight" inputmode="decimal" step="0.1" placeholder="未入力"></label>
       </div>
 
-      <div class="card">
+      <div class="card has-owl">
+          <!-- フクロウ(このアプリのキャラクター)。ページごとに場所とポーズが変わる -->
+      <div class="owl-spot owl-record">
+        <button class="owl-btn" aria-label="フクロウ"><img class="owl" src="owl.svg" alt=""></button>
+        <p class="bubble"></p>
+      </div>
         <div class="card-title">種目</div>
         <div id="exercise-list" class="chips"></div>
         <p id="previous" class="previous"></p>
@@ -76,6 +74,11 @@
     <!-- ===== マインド日記タブ =====
          話した言葉を文字にして、気分と一緒に残す場所。動きは app.js の「マインド日記」の部分。 -->
     <section id="view-mind" class="view">
+      <!-- フクロウ(このアプリのキャラクター)。ページごとに場所とポーズが変わる -->
+      <div class="owl-spot owl-mind">
+        <button class="owl-btn" aria-label="フクロウ"><img class="owl" src="owl.svg" alt=""></button>
+        <p class="bubble"></p>
+      </div>
       <div class="card">
         <div class="card-title">今日の気分（1つタップ）</div>
         <div id="mind-moods" class="chips"></div>
@@ -98,6 +101,11 @@
 
     <!-- ===== 履歴タブ ===== -->
     <section id="view-history" class="view">
+      <!-- フクロウ(このアプリのキャラクター)。ページごとに場所とポーズが変わる -->
+      <div class="owl-spot owl-history">
+        <button class="owl-btn" aria-label="フクロウ"><img class="owl" src="owl-happy.svg" alt=""></button>
+        <p class="bubble"></p>
+      </div>
       <div id="history"></div>
 
       <!-- バックアップ:記録をファイルにして保管/読み込み。中身の動きは app.js の「バックアップ」 -->
@@ -120,6 +128,11 @@
     <!-- ===== 音楽・動画タブ(やる気を上げる場所) =====
          中身の動きは app.js の「音楽・動画」のところに書いてあります。 -->
     <section id="view-motivation" class="view">
+      <!-- フクロウ(このアプリのキャラクター)。ページごとに場所とポーズが変わる -->
+      <div class="owl-spot owl-motivation">
+        <button class="owl-btn" aria-label="フクロウ"><img class="owl" src="owl-music.svg" alt=""></button>
+        <p class="bubble"></p>
+      </div>
       <!-- 音楽:プレイリストなどを開くボタン -->
       <div class="card">
         <div class="section-head">

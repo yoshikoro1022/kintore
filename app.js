@@ -770,12 +770,24 @@ const OWL_WORDS = {
 };
 const pick = (list) => list[Math.floor(Math.random() * list.length)];
 
+// 今見ているページのフクロウに話させる
 function owlSay(kind) {
-  const el = $('owl-msg');
+  const spot = document.querySelector('.view.active .owl-spot');
+  if (!spot) return;
+  const el = spot.querySelector('.bubble');
   el.textContent = pick(OWL_WORDS[kind]);
   el.classList.remove('pop');
   void el.offsetWidth; // アニメーションをもう一度動かすためのおまじない
   el.classList.add('pop');
+  // 記録したあとは、少しのあいだニコッとした顔になる
+  if (kind === 'saved' || kind === 'mindSaved') {
+    const img = spot.querySelector('.owl');
+    const normal = img.getAttribute('src');
+    if (normal === 'owl.svg') {
+      img.src = 'owl-happy.svg';
+      setTimeout(() => { img.src = normal; }, 2500);
+    }
+  }
 }
 
 // 今いるタブに合わせて話す
@@ -789,12 +801,12 @@ function owlForView(name) {
 }
 
 function showView(name) {
-  owlForView(name);
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.view === name));
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === `view-${name}`));
   if (name === 'history') { renderHistory(); renderBackupInfo(); }
   if (name !== 'motivation' && playingId) closePlayer(); // 別のタブに移ったら動画を止める
   window.scrollTo(0, 0);
+  owlForView(name);
 }
 
 function onDateChange() {
@@ -999,7 +1011,7 @@ function init() {
   $('bodyweight').addEventListener('change', saveBodyWeight);
   $('save').addEventListener('click', saveRecord);
   document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showView(t.dataset.view)));
-  $('owl').addEventListener('click', () => owlSay('tap'));
+  document.querySelectorAll('.owl-btn').forEach((b) => b.addEventListener('click', () => owlSay('tap')));
   owlForView('record');
 
   setupSteppers();

@@ -256,25 +256,45 @@ input, textarea { background: var(--chip-bg); border-color: transparent; }
 
 .log .name { font-weight: 800; }
 
-/* フクロウ(このアプリのキャラクター)と吹き出し */
-.top-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.top-row h1 { margin: 0; flex: none; }
-.owl-talk { margin-left: auto; display: flex; align-items: center; gap: 4px; min-width: 0; }
+/* フクロウ(このアプリのキャラクター)と吹き出し
+   ページごとに置き場所が変わります:
+   記録=カードの右上からのぞく / 履歴=真ん中で大きく / マインド=左 / 音楽・動画=右(ヘッドホン) */
+.owl-spot { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
 .bubble {
-  position: relative; margin: 0; padding: 6px 10px; border-radius: 12px;
-  background: var(--beige); color: #2a1c12; font-size: 13px; font-weight: 700;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;
+  position: relative; margin: 0; padding: 7px 12px; border-radius: 14px;
+  background: var(--beige); color: #2a1c12; font-size: 14px; font-weight: 700;
 }
-.bubble::after { /* 吹き出しのしっぽ(右向き) */
-  content: ""; position: absolute; right: -5px; top: 50%; margin-top: -5px;
-  border: 5px solid transparent; border-left-color: var(--beige); border-right: 0;
+.bubble::after { /* 吹き出しのしっぽ(左向き=フクロウ側) */
+  content: ""; position: absolute; left: -6px; top: 50%; margin-top: -6px;
+  border: 6px solid transparent; border-right-color: var(--beige); border-left: 0;
 }
 .bubble:empty { display: none; }
 .bubble.pop { animation: pop .35s ease-out; }
 @keyframes pop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.06); } 100% { transform: scale(1); opacity: 1; } }
 .owl-btn { flex: none; border: 0; background: none; padding: 0; }
-.owl { width: 44px; height: 44px; display: block; }
-.owl-btn:active .owl { transform: rotate(-8deg) scale(.95); }
+.owl { width: 56px; height: 56px; display: block; transition: transform .15s; }
+.owl-btn:active .owl { transform: rotate(-10deg) scale(.92); }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+.owl-spot .owl { animation: bob 3s ease-in-out infinite; }
+
+/* 記録:カードの右上のふちに座ってのぞいている */
+.card.has-owl { position: relative; }
+.owl-record { position: absolute; top: -26px; right: 10px; flex-direction: row-reverse; margin: 0; }
+.owl-record .owl { width: 52px; height: 52px; }
+.owl-record .bubble::after { left: auto; right: -6px; border-right-color: transparent; border-left: 6px solid var(--beige); border-right: 0; }
+#view-record .card.has-owl { margin-top: 30px; }
+
+/* 履歴:真ん中で大きく、吹き出しは下 */
+.owl-history { flex-direction: column; margin: 4px 0 14px; }
+.owl-history .owl { width: 84px; height: 84px; }
+.owl-history .bubble::after { left: 50%; top: -6px; margin: 0 0 0 -6px; border: 6px solid transparent; border-bottom-color: var(--beige); border-top: 0; }
+
+/* マインド:左に座って、首をかしげる */
+.owl-mind .owl { transform: rotate(-8deg); animation: none; }
+
+/* 音楽・動画:右側でヘッドホン。吹き出しは左 */
+.owl-motivation { flex-direction: row-reverse; justify-content: flex-start; }
+.owl-motivation .bubble::after { left: auto; right: -6px; border-right-color: transparent; border-left: 6px solid var(--beige); border-right: 0; }
 
 /* ===== 触る場所を分かりやすく =====
    ルール:オレンジ = 押すボタン / ベージュの枠 = 入力する場所 */

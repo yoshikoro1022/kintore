@@ -3,8 +3,8 @@
 // 一度読み込んだファイルをスマホの中にコピー(キャッシュ)しておきます。
 // 電波があるときは最新版を取りに行き、ないときはコピーを使います。
 
-const CACHE = 'kintore-v16';
-const FILES = ['./', './index.html', './style.css', './app.js', './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png', './owl.svg'];
+const CACHE = 'kintore-v17';
+const FILES = ['./', './index.html', './style.css', './app.js', './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png', './owl.svg', './owl-happy.svg', './owl-music.svg'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)));
