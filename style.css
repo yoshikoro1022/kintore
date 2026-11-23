@@ -290,4 +290,5 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
 /* バックアップのボタン(2つ横並び) */
 .backup-buttons { display: flex; gap: 8px; }
-.backup-buttons .chip { flex: 1; padding: 12px; }
+.backup-buttons .chip { flex: 1; padding: 12px 6px; white-space: nowrap; font-size: 14px; }
+.backup-buttons + .backup-buttons { margin-top: 4px; }
