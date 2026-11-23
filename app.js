@@ -27,6 +27,7 @@ function loadData() {
 function saveData() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    scheduleCloudSave(); // Googleの自動保存が設定されていれば、少し後に送る
   } catch (e) {
     alert('保存に失敗しました。容量がいっぱいか、プライベートブラウズになっていないか確認してください。');
   }
@@ -816,7 +817,7 @@ function renderBackupInfo() {
 
 async function exportBackup() {
   const today = toDateStr(new Date());
-  const json = JSON.stringify({ app: 'kintore', version: 1, exportedAt: new Date().toISOString(), data }, null, 1);
+  const json = JSON.stringify(makeBackup(), null, 1);
   const fileName = `kintore-backup-${today.replace(/-/g, '')}.json`;
   const file = new File([json], fileName, { type: 'application/json' });
 
@@ -852,21 +853,26 @@ function mergeById(mine, theirs) {
 }
 
 function importBackup(text) {
-  let incoming;
+  let parsed;
   try {
-    const parsed = JSON.parse(text);
-    incoming = parsed.data || parsed; // 包み紙あり・なし どちらでもOK
+    parsed = JSON.parse(text);
   } catch (e) {
     alert('このファイルは読み込めませんでした。書き出したファイルを選んでください。');
     return;
   }
+  mergeBackup(parsed, true);
+}
+
+// バックアップの中身(オブジェクト)を今の記録に合体させる。ファイルからもGoogleからも使う
+function mergeBackup(parsed, ask) {
+  const incoming = parsed && (parsed.data || parsed); // 包み紙あり・なし どちらでもOK
   if (!incoming || !Array.isArray(incoming.records)) {
     alert('筋トレ記録のバックアップではないようです。');
     return;
   }
   const n = incoming.records.length;
   const m = Array.isArray(incoming.minds) ? incoming.minds.length : 0;
-  if (!confirm(`記録 ${n}件・日記 ${m}件 を読み込みます。\n今ある記録は消さずに、足りない分だけ追加します。よろしいですか？`)) return;
+  if (ask && !confirm(`記録 ${n}件・日記 ${m}件 を読み込みます。\n今ある記録は消さずに、足りない分だけ追加します。よろしいですか？`)) return;
 
   data.records = mergeById(data.records, incoming.records);
   data.minds = mergeById(data.minds, incoming.minds || []);
@@ -883,10 +889,99 @@ function importBackup(text) {
   renderHistory();
   onDateChange();
   renderBackupInfo();
-  showToast('読み込みました');
+  if (ask) showToast('読み込みました');
+}
+
+function makeBackup() {
+  return { app: 'kintore', version: 1, exportedAt: new Date().toISOString(), data };
+}
+
+// ---------- Googleドライブへの自動保存 ----------
+// Google側に置いた小さなスクリプト(住所=URL)に、記録をまるごと送ります。
+// URLと合言葉はこの端末の中だけに保存し、公開しているコードには書きません。
+const CLOUD_KEY = 'kintore-cloud';
+let cloudTimer = null;
+
+function cloudSettings() {
+  try { return JSON.parse(localStorage.getItem(CLOUD_KEY)) || null; } catch (e) { return null; }
+}
+function setCloudStatus(text) {
+  const c = cloudSettings();
+  if (c) { c.status = text; try { localStorage.setItem(CLOUD_KEY, JSON.stringify(c)); } catch (e) { /* 気にしない */ } }
+  renderCloudInfo();
+}
+function renderCloudInfo() {
+  const c = cloudSettings();
+  $('cloud-info').textContent = c ? `Googleに自動保存：オン（${c.status || '待機中'}）` : 'Googleに自動保存：オフ';
+  $('cloud-setup').textContent = c ? '設定を変える' : '☁ 自動保存を設定';
+  $('cloud-restore').hidden = !c;
+}
+
+// 保存のたびにすぐ送ると何度も通信するので、3秒まとめてから送る
+function scheduleCloudSave() {
+  if (!cloudSettings()) return;
+  clearTimeout(cloudTimer);
+  cloudTimer = setTimeout(cloudSave, 3000);
+}
+
+async function cloudSave() {
+  const c = cloudSettings();
+  if (!c) return;
+  try {
+    // 中身を文字として送る(ブラウザの余計な確認が起きない送り方)
+    const res = await fetch(c.url, { method: 'POST', body: JSON.stringify({ key: c.key, backup: makeBackup() }) });
+    const r = await res.json();
+    if (!r.ok) throw new Error(r.error);
+    const t = new Date();
+    setCloudStatus(`${t.getMonth() + 1}/${t.getDate()} ${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')} 保存済み`);
+  } catch (e) {
+    // 電波がないときなど。次に記録したとき・アプリを開いたときに、もう一度送る
+    setCloudStatus(e.message === 'key' ? '合言葉がちがいます' : 'まだ送れていません');
+  }
+}
+
+async function cloudLoad(ask) {
+  const c = cloudSettings();
+  if (!c) return false;
+  const res = await fetch(`${c.url}?key=${encodeURIComponent(c.key)}`);
+  const r = await res.json();
+  if (!r.ok) throw new Error(r.error);
+  if (r.backup) mergeBackup(r.backup, ask);
+  return true;
+}
+
+async function setupCloud() {
+  const c = cloudSettings() || {};
+  const url = prompt('Googleのスクリプトの URL を貼ってください\n(空にすると自動保存をオフにします)', c.url || '');
+  if (url === null) return;
+  if (!url.trim()) {
+    try { localStorage.removeItem(CLOUD_KEY); } catch (e) { /* 気にしない */ }
+    renderCloudInfo();
+    return;
+  }
+  if (!/^https:\/\/script\.google\.com\//.test(url.trim())) { alert('script.google.com で始まる URL を貼ってください'); return; }
+  const key = prompt('合言葉を入れてください', c.key || '');
+  if (!key) return;
+  try { localStorage.setItem(CLOUD_KEY, JSON.stringify({ url: url.trim(), key })); } catch (e) { return; }
+  // 大事：新しいアイコンの空っぽの記録で上書きしないよう、先にGoogleの記録を取り込んでから送る
+  try {
+    await cloudLoad(false);
+    await cloudSave();
+    showToast('つながりました');
+  } catch (e) {
+    setCloudStatus(e.message === 'key' ? '合言葉がちがいます' : 'つながりませんでした');
+  }
 }
 
 function setupBackup() {
+  $('cloud-setup').addEventListener('click', setupCloud);
+  $('cloud-restore').addEventListener('click', async () => {
+    try { await cloudLoad(true); } catch (e) { alert('Googleから読み込めませんでした。電波と設定を確認してください。'); }
+  });
+  renderCloudInfo();
+  // 前回送れていなかったときのために、開いたときにも1回送る
+  if (cloudSettings()) scheduleCloudSave();
+
   $('backup-export').addEventListener('click', exportBackup);
   $('backup-import').addEventListener('click', () => $('backup-file').click());
   $('backup-file').addEventListener('change', async (e) => {
