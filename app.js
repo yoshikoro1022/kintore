@@ -584,7 +584,8 @@ function renderMindReminder() {
   const since = data.mindBulkCopiedAt || 0;
   const unsent = data.minds.filter((m) => m.createdAt > since);
   const box = $('mind-reminder');
-  if (unsent.length === 0) { box.hidden = true; return; }
+  // Googleの自動保存がオンなら、週1回Claudeが自動でまとめるのでお知らせは出さない
+  if (unsent.length === 0 || cloudSettings()) { box.hidden = true; return; }
   const oldest = Math.min(...unsent.map((m) => m.createdAt));
   const days = (Date.now() - oldest) / 86400000;
   if (days < REMIND_DAYS) { box.hidden = true; return; }
