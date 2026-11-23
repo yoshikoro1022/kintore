@@ -76,22 +76,33 @@
     <!-- ===== マインド日記タブ =====
          話した言葉を文字にして、気分と一緒に残す場所。動きは app.js の「マインド日記」の部分。 -->
     <section id="view-mind" class="view">
-      <div class="card">
-        <div class="card-title">今日の気分（1つタップ）</div>
-        <div id="mind-moods" class="chips"></div>
+      <!-- 1週間たまったら出るお知らせ(app.js の renderMindReminder が出し入れする) -->
+      <div id="mind-reminder" class="card mind-reminder" hidden>
+        <p id="mind-reminder-text"></p>
+        <button id="mind-reminder-go" class="primary">コピーしてClaudeを開く</button>
       </div>
 
       <div class="card">
-        <div class="card-title">ひとこと（話してOK）</div>
-        <p class="hint mind-guide">例：「今日のテーマは〇〇。調子は〇〇。次は〇〇する。」</p>
-        <button id="mind-mic" class="mic-btn">🎤 押して話す</button>
-        <textarea id="mind-text" rows="5" placeholder="ここに文字が入ります。キーボードのマイクで話してもOK"></textarea>
+        <div class="card-title">今日の気分（1つタップ）</div>
+        <div id="mind-moods" class="chips"></div>
+        <!-- だるい・しんどい日に「やる気があった日の自分」を出す場所 -->
+        <div id="mind-past" class="mind-past" hidden></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title mind-q-head">
+          <span>3つの質問に答える</span>
+          <button id="mind-q-edit" class="link-edit-toggle">質問を変える</button>
+        </div>
+        <p class="hint mind-guide">欄をタップ → キーボードの <b>🎤マイク</b> を押して話すだけ。空欄があってもOK</p>
+        <div id="mind-questions"></div>
+        <p id="mind-workout" class="hint mind-workout"></p>
         <button id="mind-save" class="primary">日記に残す</button>
       </div>
 
       <div class="card">
         <div class="card-title">これまでのマインド日記</div>
-        <button id="mind-bulk" class="chip add mind-bulk">まとめてコピー（Claudeに貼る用）</button>
+        <button id="mind-bulk" class="chip add mind-bulk">まとめてClaudeに送る</button>
         <ul id="mind-list" class="log"></ul>
       </div>
     </section>

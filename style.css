@@ -155,6 +155,14 @@ textarea {
 .mic-btn.listening { background: var(--danger); border-color: var(--danger); color: #fff; }
 .mic-btn[hidden] { display: none; }
 .mind-guide { margin-top: 0; }
+.mind-q-head { display: flex; justify-content: space-between; align-items: baseline; }
+.mind-q label { display: block; font-size: 15px; font-weight: 600; margin-top: 8px; }
+.mind-q textarea { margin: 6px 0 4px; }
+.mind-workout { margin: 4px 0 10px; }
+.mind-past { margin-top: 12px; padding: 10px 12px; background: var(--accent-weak); border-radius: 10px; font-size: 14px; white-space: pre-wrap; }
+.mind-past[hidden], .mind-reminder[hidden] { display: none; }
+.mind-reminder p { margin: 0 0 10px; font-size: 15px; }
+.mind-item .mind-workout-line { font-size: 13px; color: var(--sub); margin-top: 4px; }
 .mind-bulk { width: 100%; margin-bottom: 8px; }
 .mind-item { flex-direction: column; align-items: stretch !important; }
 .mind-item .mind-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
