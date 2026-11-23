@@ -32,11 +32,22 @@ function saveData() {
   }
 }
 
+// やる気スイッチのボタン(最初に入っているもの)
+// url は「共有 → リンクをコピー」したものに差し替えられます。
+const DEFAULT_LINKS = [
+  { name: '🎵 音楽', url: 'https://music.line.me/' },
+  { name: '▶ YouTube', url: 'https://www.youtube.com/shorts' },
+  { name: '♪ TikTok', url: 'https://www.tiktok.com/' },
+];
+
 // アプリ全体のデータ
 //   records     : 記録の一覧 [{ id, date, exercise, weight, reps, sets, createdAt }, ...]
 //   bodyWeights : 日付ごとの体重 { '2026-11-23': 70.5, ... }
 //   exercises   : 種目の一覧
+//   links       : やる気スイッチのボタン [{ name, url }, ...]
 const data = loadData();
+// 古いデータには links がないので、そのときは最初のボタンを入れておく
+if (!Array.isArray(data.links)) data.links = DEFAULT_LINKS.map((l) => ({ ...l }));
 
 // 今、画面で入力中の値
 const form = { exercise: data.exercises[0] || '', weight: 20, reps: 10, sets: 3 };
@@ -315,6 +326,73 @@ function renderHistory() {
   }
 }
 
+// ---------- やる気スイッチ(音楽・動画を開くボタン) ----------
+// アプリの中身を操作することはできないので、「そのページを開く」だけのボタンです。
+// iPhone では、アプリが入っていればアプリで開くことが多いです。
+function renderLinks() {
+  const box = $('link-buttons');
+  box.innerHTML = '';
+  for (const l of data.links) {
+    if (!l.url) continue;
+    const a = document.createElement('a');
+    a.className = 'link-btn';
+    a.textContent = l.name || 'リンク';
+    a.href = l.url;
+    a.target = '_blank'; // 記録アプリは閉じずに、別の画面で開く
+    a.rel = 'noopener';
+    box.appendChild(a);
+  }
+}
+
+// 編集画面:ボタン1つにつき「名前」「URL」「削除」の1行
+function renderLinkEditor() {
+  const rows = $('link-edit-rows');
+  rows.innerHTML = '';
+  data.links.forEach((l, i) => {
+    const row = document.createElement('div');
+    row.className = 'link-edit-row';
+
+    const name = document.createElement('input');
+    name.value = l.name;
+    name.placeholder = '名前（例：🎵 筋トレ用）';
+    name.addEventListener('change', () => { l.name = name.value.trim(); saveData(); renderLinks(); });
+
+    const url = document.createElement('input');
+    url.type = 'url';
+    url.value = l.url;
+    url.placeholder = 'https://...';
+    url.addEventListener('change', () => { l.url = url.value.trim(); saveData(); renderLinks(); });
+
+    const del = document.createElement('button');
+    del.className = 'del';
+    del.textContent = '削除';
+    del.addEventListener('click', () => {
+      data.links.splice(i, 1);
+      saveData();
+      renderLinks();
+      renderLinkEditor();
+    });
+
+    row.append(name, url, del);
+    rows.appendChild(row);
+  });
+}
+
+function setupLinks() {
+  $('link-edit-toggle').addEventListener('click', () => {
+    const editor = $('link-editor');
+    editor.hidden = !editor.hidden;
+    if (!editor.hidden) renderLinkEditor();
+  });
+  $('link-edit-done').addEventListener('click', () => { $('link-editor').hidden = true; });
+  $('link-add').addEventListener('click', () => {
+    data.links.push({ name: '', url: '' });
+    saveData();
+    renderLinkEditor();
+  });
+  renderLinks();
+}
+
 // ---------- タブの切り替え ----------
 function showView(name) {
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.view === name));
@@ -338,6 +416,7 @@ function init() {
   document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showView(t.dataset.view)));
 
   setupSteppers();
+  setupLinks();
   selectExercise(form.exercise);
   onDateChange();
 

@@ -28,6 +28,20 @@
   <main>
     <!-- ===== 記録タブ ===== -->
     <section id="view-record" class="view active">
+      <!-- ===== やる気スイッチ(音楽・動画アプリを開くボタン) =====
+           中身は app.js の renderLinks() が作ります。 -->
+      <div class="links-bar">
+        <div id="link-buttons" class="link-buttons"></div>
+        <button id="link-edit-toggle" class="link-edit-toggle" aria-label="ボタンを編集">編集</button>
+      </div>
+      <div id="link-editor" class="card link-editor" hidden>
+        <div class="card-title">ボタンの編集（名前と開くページのURL）</div>
+        <div id="link-edit-rows"></div>
+        <button id="link-add" class="chip add">＋ ボタンを追加</button>
+        <p class="hint">プレイリストや動画のページで「共有 → リンクをコピー」したURLを貼り付けると、そこへ直接飛べます。</p>
+        <button id="link-edit-done" class="primary">完了</button>
+      </div>
+
       <div class="row two">
         <label class="field"><span>日付</span><input type="date" id="date"></label>
         <label class="field"><span>体重 (kg)</span><input type="number" id="bodyweight" inputmode="decimal" step="0.1" placeholder="未入力"></label>
