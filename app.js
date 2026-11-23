@@ -465,6 +465,34 @@ async function copyMindForNotion(m) {
   }
 }
 
+// 前回まとめてコピーした後の分を、全部まとめてコピーする。
+// これをClaudeに貼ると、要約してNotionに書いてもらえる(月1回や週1回でOK)。
+async function copyMindBulk() {
+  const since = data.mindBulkCopiedAt || 0;
+  let items = data.minds.filter((m) => m.createdAt > since);
+  if (items.length === 0) items = data.minds; // 新しい分がなければ全部
+  if (items.length === 0) {
+    showToast('まだ日記がありません');
+    return;
+  }
+  items = [...items].sort((a, b) => a.createdAt - b.createdAt);
+  const lines = ['筋トレのマインド日記です。要約してNotionに記録してください。', ''];
+  for (const m of items) {
+    lines.push(`■ ${m.date} ${m.mood}`.trim());
+    if (m.text) lines.push(m.text);
+    lines.push('');
+  }
+  const all = lines.join('\n');
+  try {
+    await navigator.clipboard.writeText(all);
+    showToast(`${items.length}件コピーしました。Claudeに貼り付けてください`);
+  } catch (e) {
+    prompt('下の文を長押ししてコピーしてください', all);
+  }
+  data.mindBulkCopiedAt = Date.now();
+  saveData();
+}
+
 function deleteMind(id) {
   if (!confirm('このマインド日記を削除しますか？')) return;
   data.minds = data.minds.filter((m) => m.id !== id);
@@ -552,6 +580,7 @@ function setupMic() {
 
 function setupMind() {
   $('mind-save').addEventListener('click', saveMind);
+  $('mind-bulk').addEventListener('click', copyMindBulk);
   setupMic();
   renderMoods();
   renderMindList();

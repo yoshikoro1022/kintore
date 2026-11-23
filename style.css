@@ -159,6 +159,7 @@ textarea {
 .mic-btn.listening { background: var(--danger); border-color: var(--danger); color: #fff; }
 .mic-btn[hidden] { display: none; }
 .mind-guide { margin-top: 0; }
+.mind-bulk { width: 100%; margin-bottom: 8px; }
 .mind-item { flex-direction: column; align-items: stretch !important; }
 .mind-item .mind-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .mind-item .mind-body { white-space: pre-wrap; font-size: 14px; color: var(--sub); margin-top: 4px; }
