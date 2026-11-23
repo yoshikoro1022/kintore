@@ -22,26 +22,13 @@
     <nav class="tabs">
       <button class="tab active" data-view="record">記録</button>
       <button class="tab" data-view="history">履歴</button>
+      <button class="tab" data-view="motivation">音楽・動画</button>
     </nav>
   </header>
 
   <main>
     <!-- ===== 記録タブ ===== -->
     <section id="view-record" class="view active">
-      <!-- ===== やる気スイッチ(音楽・動画アプリを開くボタン) =====
-           中身は app.js の renderLinks() が作ります。 -->
-      <div class="links-bar">
-        <div id="link-buttons" class="link-buttons"></div>
-        <button id="link-edit-toggle" class="link-edit-toggle" aria-label="ボタンを編集">編集</button>
-      </div>
-      <div id="link-editor" class="card link-editor" hidden>
-        <div class="card-title">ボタンの編集（名前と開くページのURL）</div>
-        <div id="link-edit-rows"></div>
-        <button id="link-add" class="chip add">＋ ボタンを追加</button>
-        <p class="hint">プレイリストや動画のページで「共有 → リンクをコピー」したURLを貼り付けると、そこへ直接飛べます。</p>
-        <button id="link-edit-done" class="primary">完了</button>
-      </div>
-
       <div class="row two">
         <label class="field"><span>日付</span><input type="date" id="date"></label>
         <label class="field"><span>体重 (kg)</span><input type="number" id="bodyweight" inputmode="decimal" step="0.1" placeholder="未入力"></label>
@@ -87,6 +74,39 @@
     <!-- ===== 履歴タブ ===== -->
     <section id="view-history" class="view">
       <div id="history"></div>
+    </section>
+    <!-- ===== 音楽・動画タブ(やる気を上げる場所) =====
+         中身の動きは app.js の「音楽・動画」のところに書いてあります。 -->
+    <section id="view-motivation" class="view">
+      <!-- 音楽:プレイリストなどを開くボタン -->
+      <div class="card">
+        <div class="section-head">
+          <div class="card-title">音楽</div>
+          <button id="link-edit-toggle" class="text-btn">編集</button>
+        </div>
+        <div id="link-buttons" class="link-buttons"></div>
+        <div id="link-editor" class="link-editor" hidden>
+          <div id="link-edit-rows"></div>
+          <button id="link-add" class="chip add">＋ ボタンを追加</button>
+          <p class="hint">LINE MUSIC のプレイリストで「共有 → リンクをコピー」したURLを貼ると、そのプレイリストへ直接飛べます。</p>
+          <button id="link-edit-done" class="primary">完了</button>
+        </div>
+      </div>
+
+      <!-- 動画:アプリの中でそのまま再生する -->
+      <div class="card">
+        <div class="section-head">
+          <div class="card-title">やる気動画</div>
+          <button id="video-add" class="text-btn">＋ 追加</button>
+        </div>
+        <div id="player" class="player" hidden></div>
+        <div id="player-controls" class="player-controls" hidden>
+          <button id="video-random" class="chip">🔀 ランダム</button>
+          <button id="video-next" class="chip">次へ ▶</button>
+          <button id="video-close" class="chip">閉じる</button>
+        </div>
+        <ul id="video-list" class="video-list"></ul>
+      </div>
     </section>
   </main>
 

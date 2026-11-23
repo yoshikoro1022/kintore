@@ -44,10 +44,12 @@ const DEFAULT_LINKS = [
 //   records     : 記録の一覧 [{ id, date, exercise, weight, reps, sets, createdAt }, ...]
 //   bodyWeights : 日付ごとの体重 { '2026-11-23': 70.5, ... }
 //   exercises   : 種目の一覧
-//   links       : やる気スイッチのボタン [{ name, url }, ...]
+//   links       : 音楽のボタン [{ name, url }, ...]
+//   videos      : やる気動画 [{ id, kind, vid, url, title }, ...]
 const data = loadData();
-// 古いデータには links がないので、そのときは最初のボタンを入れておく
+// 古いデータには links / videos がないので、そのときは最初の状態を入れておく
 if (!Array.isArray(data.links)) data.links = DEFAULT_LINKS.map((l) => ({ ...l }));
+if (!Array.isArray(data.videos)) data.videos = [];
 
 // 今、画面で入力中の値
 const form = { exercise: data.exercises[0] || '', weight: 20, reps: 10, sets: 3 };
@@ -326,7 +328,7 @@ function renderHistory() {
   }
 }
 
-// ---------- やる気スイッチ(音楽・動画を開くボタン) ----------
+// ---------- 音楽(プレイリストなどを開くボタン) ----------
 // アプリの中身を操作することはできないので、「そのページを開く」だけのボタンです。
 // iPhone では、アプリが入っていればアプリで開くことが多いです。
 function renderLinks() {
@@ -384,7 +386,7 @@ function setupLinks() {
     editor.hidden = !editor.hidden;
     if (!editor.hidden) renderLinkEditor();
   });
-  $('link-edit-done').addEventListener('click', () => { $('link-editor').hidden = true; });
+  $('link-edit-done').addEventListener('click', () => { $('link-editor').hidden = true; renderLinks(); });
   $('link-add').addEventListener('click', () => {
     data.links.push({ name: '', url: '' });
     saveData();
@@ -393,11 +395,175 @@ function setupLinks() {
   renderLinks();
 }
 
+// ---------- やる気動画(アプリの中で再生) ----------
+// YouTube や TikTok の「共有 → リンクをコピー」したURLを登録しておくと、
+// アプリを切り替えずにこの画面の中で再生できます。
+// (「後で見る」や「いいね」の一覧を自動で読み込むことは、各サービスが許可していないためできません)
+
+// URL を見て「どのサービスの、どの動画か」を調べる。C#でいう「パース(解析)」
+function parseVideoUrl(text) {
+  let u;
+  try { u = new URL(text.trim()); } catch (e) { return null; }
+  const host = u.hostname.replace(/^www\.|^m\./, '');
+  if (host === 'youtu.be') {
+    const vid = u.pathname.slice(1).split('/')[0];
+    return vid ? { kind: 'youtube', vid } : null;
+  }
+  if (host.endsWith('youtube.com')) {
+    const shorts = u.pathname.match(/^\/(shorts|embed|live)\/([\w-]+)/);
+    if (shorts) return { kind: 'youtube', vid: shorts[2] };
+    if (u.searchParams.get('v')) return { kind: 'youtube', vid: u.searchParams.get('v') };
+    // 再生リストのURL(自分で作った「筋トレ用」再生リストなど)
+    if (u.searchParams.get('list')) return { kind: 'youtube-list', vid: u.searchParams.get('list') };
+    return null;
+  }
+  if (host.endsWith('tiktok.com')) {
+    const m = u.pathname.match(/\/video\/(\d+)/);
+    if (m) return { kind: 'tiktok', vid: m[1] };
+    // 短いURL(vt.tiktok.com など)は中身の番号が分からないので、TikTokを開くリンクとして保存
+    return { kind: 'link', vid: '' };
+  }
+  return null;
+}
+
+// 動画を再生するための「埋め込み用URL」を作る
+function embedUrl(v) {
+  if (v.kind === 'youtube') return `https://www.youtube.com/embed/${v.vid}?autoplay=1&playsinline=1&rel=0`;
+  if (v.kind === 'youtube-list') return `https://www.youtube.com/embed/videoseries?list=${v.vid}&autoplay=1&playsinline=1&rel=0`;
+  if (v.kind === 'tiktok') return `https://www.tiktok.com/player/v1/${v.vid}?autoplay=1&loop=1&rel=0`;
+  return '';
+}
+
+let playingId = null;
+
+function addVideo() {
+  const text = prompt('YouTube か TikTok の動画のURLを貼り付けてください\n（再生リストのURLもOK）');
+  if (!text) return;
+  const info = parseVideoUrl(text);
+  if (!info) {
+    showToast('YouTube か TikTok のURLを貼ってください');
+    return;
+  }
+  const v = {
+    id: Date.now().toString(36),
+    kind: info.kind,
+    vid: info.vid,
+    url: text.trim(),
+    title: { youtube: 'YouTube', 'youtube-list': '再生リスト', tiktok: 'TikTok', link: 'TikTok（外で開く）' }[info.kind],
+  };
+  data.videos.unshift(v); // 新しいものを先頭に
+  saveData();
+  renderVideos();
+  if (info.kind === 'link') showToast('短いURLなので、押すとTikTokで開きます');
+  fetchTitle(v);
+}
+
+// YouTube の動画名を取りに行く(取れなければそのまま)
+function fetchTitle(v) {
+  if (v.kind !== 'youtube') return;
+  fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent('https://www.youtube.com/watch?v=' + v.vid)}`)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => {
+      if (j && j.title) { v.title = j.title; saveData(); renderVideos(); }
+    })
+    .catch(() => {});
+}
+
+function deleteVideo(id) {
+  if (!confirm('この動画をリストから外しますか？')) return;
+  data.videos = data.videos.filter((v) => v.id !== id);
+  if (playingId === id) closePlayer();
+  saveData();
+  renderVideos();
+}
+
+function playVideo(id) {
+  const v = data.videos.find((x) => x.id === id);
+  if (!v) return;
+  if (v.kind === 'link') {
+    window.open(v.url, '_blank');
+    return;
+  }
+  playingId = id;
+  const player = $('player');
+  player.innerHTML = '';
+  player.classList.toggle('wide', v.kind === 'youtube-list');
+  const f = document.createElement('iframe');
+  f.src = embedUrl(v);
+  f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
+  f.allowFullscreen = true;
+  player.appendChild(f);
+  player.hidden = false;
+  $('player-controls').hidden = false;
+  renderVideos();
+  player.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// アプリ内で再生できる動画だけを順番に回す
+function playNext(random) {
+  const list = data.videos.filter((v) => v.kind !== 'link');
+  if (list.length === 0) return;
+  let i = list.findIndex((v) => v.id === playingId);
+  if (random && list.length > 1) {
+    let r;
+    do { r = Math.floor(Math.random() * list.length); } while (r === i);
+    i = r;
+  } else {
+    i = (i + 1) % list.length;
+  }
+  playVideo(list[i].id);
+}
+
+function closePlayer() {
+  playingId = null;
+  $('player').innerHTML = ''; // 中身を消すと再生も止まる
+  $('player').hidden = true;
+  $('player-controls').hidden = true;
+  renderVideos();
+}
+
+function renderVideos() {
+  const list = $('video-list');
+  list.innerHTML = '';
+  if (data.videos.length === 0) {
+    list.innerHTML = '<li class="empty">「＋ 追加」から、YouTube や TikTok の「共有 → リンクをコピー」したURLを貼ってください。</li>';
+    return;
+  }
+  for (const v of data.videos) {
+    const li = document.createElement('li');
+    li.className = 'video-item';
+    const b = document.createElement('button');
+    b.className = 'video-thumb' + (v.id === playingId ? ' playing' : '');
+    if (v.kind === 'youtube') {
+      b.style.backgroundImage = `url(https://i.ytimg.com/vi/${v.vid}/hqdefault.jpg)`;
+      b.classList.add('has-img');
+    }
+    b.textContent = v.title;
+    b.addEventListener('click', () => playVideo(v.id));
+    const del = document.createElement('button');
+    del.className = 'video-del';
+    del.textContent = '×';
+    del.setAttribute('aria-label', '外す');
+    del.addEventListener('click', () => deleteVideo(v.id));
+    li.append(b, del);
+    list.appendChild(li);
+  }
+}
+
+function setupVideos() {
+  $('video-add').addEventListener('click', addVideo);
+  $('video-next').addEventListener('click', () => playNext(false));
+  $('video-random').addEventListener('click', () => playNext(true));
+  $('video-close').addEventListener('click', closePlayer);
+  renderVideos();
+}
+
 // ---------- タブの切り替え ----------
 function showView(name) {
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.view === name));
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === `view-${name}`));
   if (name === 'history') renderHistory();
+  if (name !== 'motivation' && playingId) closePlayer(); // 別のタブに移ったら動画を止める
   window.scrollTo(0, 0);
 }
 
@@ -417,6 +583,7 @@ function init() {
 
   setupSteppers();
   setupLinks();
+  setupVideos();
   selectExercise(form.exercise);
   onDateChange();
 
